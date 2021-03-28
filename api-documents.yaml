@@ -1,0 +1,192 @@
+---
+openapi: 3.0.0
+info:
+  title: Simple Github Search API
+  description: This is a simple Github Search API for Users, Repositories, Issues
+  contact:
+    email: bakr.baroudi@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/bakr.baroudi/github-search-api/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: API
+  description: Operations available to regular developers
+paths:
+  /search:
+    post:
+      tags:
+      - API
+      summary: search for users, repositories, issues
+      description: "By passing in the search type ((users, repositories or issues) will search for the available results in github \n"
+      parameters:
+      - name: searchType
+        in: query
+        description: pass an required search type for looking up in github (users, repositories or issues). The response strcutre will be based on the value passed here
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: searchText
+        in: query
+        description: the keyword to search for
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: search results matching criteria, response will be based on searchType query param value (users, repositories or issues)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                  - $ref: '#/components/schemas/UserItem'
+                  - $ref: '#/components/schemas/RepositoryItem'
+                  - $ref: '#/components/schemas/IssueItem'
+        "400":
+          description: clear redis cache
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+  /clear-cache:
+    get:
+      tags:
+      - API
+      summary: clear server cache
+      description: "Calling this API will clear server cache \n"
+      responses:
+        "200":
+          description: clear redis cache
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "500":
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_500'
+components:
+  schemas:
+    UserItem:
+      required:
+      - avatar_url
+      - id
+      - name
+      - type
+      - url
+      type: object
+      properties:
+        id:
+          type: number
+          example: 69631
+        name:
+          type: string
+          example: facebook
+        avatar_url:
+          type: string
+          example: https://avatars.githubusercontent.com/u/69631?v=4
+        url:
+          type: string
+          example: https://api.github.com/users/facebook
+        type:
+          type: string
+          example: Organization
+    RepositoryItem:
+      required:
+      - description
+      - forks_count
+      - id
+      - language
+      - name
+      - owner
+      - stargazers_count
+      - url
+      type: object
+      properties:
+        id:
+          type: number
+          example: 10270250
+        name:
+          type: string
+          example: react
+        description:
+          type: string
+          example: A declarative, efficient, and flexible JavaScript library for building user interfaces.
+        language:
+          type: string
+          example: JavaScript
+        forks_count:
+          type: number
+          example: 33316
+        stargazers_count:
+          type: number
+          example: 165937
+        owner:
+          $ref: '#/components/schemas/UserItem'
+    IssueItem:
+      required:
+      - description
+      - id
+      - owner
+      - state
+      - title
+      - url
+      type: object
+      properties:
+        id:
+          type: number
+          example: 841586478
+        url:
+          type: string
+          example: https://api.github.com/repos/facebook/react/issues/21111
+        title:
+          type: string
+          example: flushSync should change priority of commit phase updates to sync, even though it can't flush them immediately
+        state:
+          type: string
+          example: open
+        description:
+          type: string
+          example: "flushSync early returns if it detects it's in the commit (or render) phase, since it can't synchronously flush when React is already working.\r\n\r\nHowever, it should still change the priority of updates scheduled by the callback to be synchronous.\r\n\r\nThis mostly already works because the commit phase itself has a sync event priority context, but the passive effect phase doesn't.\r\n\r\nNeed more tests for this."
+        owner:
+          $ref: '#/components/schemas/UserItem'
+    inline_response_400:
+      properties:
+        message:
+          type: string
+          example: search type is not allowed
+        code:
+          type: number
+          example: 400
+    inline_response_500:
+      properties:
+        message:
+          type: string
+        code:
+          type: number
+          example: 500
+    inline_response_200:
+      properties:
+        message:
+          type: string
+          example: redis cleared successfully
+        code:
+          type: number
+          example: 200
