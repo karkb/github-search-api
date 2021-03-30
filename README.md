@@ -1,5 +1,8 @@
 # github-search-api
 
+## Run it
+### npm run dev
+  
 # This is github search api, this api to search github users or repositories or issues.
 
 ### The problem here is to prevent too many requrest white user is typing the keyword to search.
