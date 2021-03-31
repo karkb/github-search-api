@@ -10,6 +10,18 @@ const searchGithub = async (req: any, res: any) => {
   const searchType = req.query.searchType;
   const searchText = req.query.searchText;
 
+  if (!searchText) {
+    return res
+      .status(400)
+      .send({ code: 400, message: "searchText is required" });
+  }
+
+  if (!searchType) {
+    return res
+      .status(400)
+      .send({ code: 400, message: "searchType is required" });
+  }
+
   // check if search type is allowed
   var searchTypeExists = allowedSearchType.includes(searchType.toLowerCase());
   if (!searchTypeExists) {
@@ -23,6 +35,7 @@ const searchGithub = async (req: any, res: any) => {
     const results = await axios.get(
       `${process.env.GITHUB_API_URL}/search/${searchType}?q=${searchText}`
     );
+
     redisClient.setex(searchText, 7200, JSON.stringify(results.data.items));
 
     // return the requested entity
